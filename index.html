@@ -30,19 +30,19 @@
             border-top: 6px solid transparent;
             border-bottom: 6px solid transparent;
             border-left: 10px solid #3b82f6; 
-            animation: flowAnimation 2s linear infinite;
+            animation: flowAnimation var(--flow-duration, 2s) linear infinite;
         }
         
         .arrow-flow-reverse {
              border-left: none;
              border-right: 10px solid #ef4444; 
-             animation: flowAnimationReverse 2s linear infinite;
+             animation: flowAnimationReverse var(--flow-duration, 2s) linear infinite;
         }
 
         .arrow-flow-pv {
              border-left: none; 
              border-right: 10px solid #eab308; 
-             animation: flowAnimationReverse 2s linear infinite;
+             animation: flowAnimationReverse var(--flow-duration, 2s) linear infinite;
         }
         
         .arrow-flow-load {
@@ -53,7 +53,7 @@
             top: -10px;
             left: 50%;
             transform: translateX(-50%) rotate(90deg);
-            animation: flowAnimationDown 2s linear infinite;
+            animation: flowAnimationDown var(--flow-duration, 2s) linear infinite;
         }
 
         @keyframes flowAnimation {
@@ -177,17 +177,29 @@
                             <input type="range" id="slider_load" min="0" max="25000" step="500" value="5000">
                         </div>
 
-                        <div class="bg-slate-50 p-4 rounded-lg text-sm grid grid-cols-2 gap-3 border border-slate-100">
-                            <div><span class="text-slate-500 text-[10px] block uppercase">U nguồn lưới</span> <span class="font-semibold text-slate-700">230 V</span></div>
-                            <div><span class="text-slate-500 text-[10px] block uppercase">Q tải cảm</span> <span class="font-semibold text-slate-700">500 VAr</span></div>
-                            <div><span class="text-slate-500 text-[10px] block uppercase">R đường dây</span> <span class="font-semibold text-slate-700">0.5 Ω</span></div>
-                            <div><span class="text-slate-500 text-[10px] block uppercase">X đường dây</span> <span class="font-semibold text-slate-700">0.1 Ω</span></div>
+                        <div class="bg-slate-50 p-4 rounded-lg text-sm grid grid-cols-1 gap-4 border border-slate-100">
+                            <div class="grid grid-cols-2 gap-3 items-center">
+                                <label class="text-slate-500 text-[10px] uppercase">U nguồn lưới (V)</label>
+                                <input id="input_v_source" type="number" min="150" max="260" step="1" value="230" class="w-full rounded border border-slate-200 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 items-center">
+                                <label class="text-slate-500 text-[10px] uppercase">Q tải cảm (VAr)</label>
+                                <input id="input_q_load" type="number" min="0" max="2000" step="10" value="500" class="w-full rounded border border-slate-200 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 items-center">
+                                <label class="text-slate-500 text-[10px] uppercase">R đường dây (Ω)</label>
+                                <input id="input_r" type="number" min="0" max="5" step="0.01" value="0.5" class="w-full rounded border border-slate-200 px-3 py-2 text-sm" />
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 items-center">
+                                <label class="text-slate-500 text-[10px] uppercase">X đường dây (Ω)</label>
+                                <input id="input_x" type="number" min="0" max="5" step="0.01" value="0.1" class="w-full rounded border border-slate-200 px-3 py-2 text-sm" />
+                            </div>
                         </div>
                         
                         <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg text-[11px] text-blue-800 leading-relaxed">
                             <strong>Tiêu chuẩn vận hành:</strong><br>
-                            - Ngưỡng quá áp (+10%): 253 V<br>
-                            - Ngưỡng thấp áp (-10%): 207 V
+                            - Ngưỡng quá áp (+10%): <span id="threshold_high">253</span> V<br>
+                            - Ngưỡng thấp áp (-10%): <span id="threshold_low">207</span> V
                         </div>
                     </div>
                 </div>
@@ -227,7 +239,7 @@
                         </div>
 
                         <!-- Đường dây chính -->
-                        <div class="absolute left-12 right-[35%] top-1/2 -translate-y-1/2 h-1.5 flex items-center">
+                        <div class="absolute left-16 right-[35%] top-1/2 -translate-y-1/2 h-1.5 flex items-center">
                             <div id="flow_grid_mid" class="flow-line w-full h-full relative">
                                 <div class="arrow-flow"></div>
                             </div>
@@ -262,7 +274,7 @@
                             <span class="text-[10px] font-bold uppercase text-slate-500">Hệ Thống PV</span>
                         </div>
 
-                        <div class="absolute right-12 left-[65%] top-1/2 -translate-y-1/2 h-1.5">
+                        <div class="absolute right-16 left-[65%] top-1/2 -translate-y-1/2 h-1.5">
                              <div id="flow_pv_pcc" class="flow-line w-full h-full relative">
                                 <div class="arrow-flow arrow-flow-pv"></div>
                             </div>
@@ -284,20 +296,20 @@
                             <p class="font-bold text-slate-600 text-[11px] mb-2 uppercase tracking-wider">1. Công suất tịnh tại PCC (P<sub>net</sub>)</p>
                             <div class="math-block">
                                 P_net = P_pv - P_load = <span id="math_pv" class="text-yellow-600">0</span> - <span id="math_load" class="text-purple-600">5000</span> = <strong id="math_pnet"></strong> W<br>
-                                Q_net = 0 - 500 = <strong>-500</strong> VAr
+                                Q_net = 0 - <span id="math_q_load" class="text-slate-700">500</span> = <strong id="math_qnet">-500</strong> VAr
                             </div>
                         </div>
                         <div>
                             <p class="font-bold text-slate-600 text-[11px] mb-2 uppercase tracking-wider">2. Độ biến thiên áp trên dây (ΔV)</p>
                             <div class="math-block">
                                 ΔV ≈ (P_net × R + Q_net × X) / V_nguon<br>
-                                ΔV = (<span id="math_pnet2"></span> × 0.5 + (-500) × 0.1) / 230 = <strong><span id="math_dv"></span> V</strong>
+                                ΔV = (<span id="math_pnet2"></span> × <span id="math_r" class="text-slate-700">0.5</span> + <span id="math_qnet2" class="text-slate-700">-500</span> × <span id="math_x" class="text-slate-700">0.1</span>) / <span id="math_v_source" class="text-slate-700">230</span> = <strong><span id="math_dv"></span> V</strong>
                             </div>
                         </div>
                         <div>
                             <p class="font-bold text-slate-600 text-[11px] mb-2 uppercase tracking-wider">3. Điện áp đo được tại PCC (V<sub>pcc</sub>)</p>
                             <div class="math-block text-base">
-                                V_pcc = V_nguon + ΔV = 230 + (<span id="math_dv2"></span>) = <strong id="math_vpcc" class="text-blue-600"></strong><strong> V</strong>
+                                V_pcc = V_nguon + ΔV = <span id="math_v_source2" class="text-slate-700">230</span> + (<span id="math_dv2"></span>) = <strong id="math_vpcc" class="text-blue-600"></strong><strong> V</strong>
                             </div>
                         </div>
                     </div>
@@ -326,17 +338,18 @@
     </div>
 
     <script>
-        const V_SOURCE = 230;
-        const R = 0.5;
-        const X = 0.1;
-        const Q_LOAD = 500;
-        const V_MAX = 253; // +10%
-        const V_MIN = 207; // -10%
+        const THRESHOLD_FACTOR = 0.1;
 
         const sliderPV = document.getElementById('slider_pv');
+
         const sliderLoad = document.getElementById('slider_load');
         const valPV = document.getElementById('val_pv');
         const valLoad = document.getElementById('val_load');
+
+        const inputVSource = document.getElementById('input_v_source');
+        const inputQLoad = document.getElementById('input_q_load');
+        const inputR = document.getElementById('input_r');
+        const inputX = document.getElementById('input_x');
         
         const mathPVs = document.querySelectorAll('#math_pv');
         const mathLoads = document.querySelectorAll('#math_load');
@@ -345,6 +358,8 @@
         const mathDV = document.getElementById('math_dv');
         const mathDV2 = document.getElementById('math_dv2');
         const mathVPCC = document.getElementById('math_vpcc');
+        const thresholdHighLabel = document.getElementById('threshold_high');
+        const thresholdLowLabel = document.getElementById('threshold_low');
         
         const netStatus = document.getElementById('net_status');
         const alertBox = document.getElementById('alert_box');
@@ -358,6 +373,7 @@
 
         const flowGridMid = document.getElementById('flow_grid_mid').querySelector('div');
         const flowPvPcc = document.getElementById('flow_pv_pcc').querySelector('div');
+        const flowPccLoad = document.getElementById('flow_pcc_load');
         const gridPowerLabel = document.getElementById('grid_power_label');
 
         const ctx = document.getElementById('voltageChart').getContext('2d');
@@ -377,11 +393,18 @@
         function update() {
             const P_pv = parseFloat(sliderPV.value);
             const P_load = parseFloat(sliderLoad.value);
+            const V_source = parseFloat(inputVSource.value);
+            const Q_load = parseFloat(inputQLoad.value);
+            const R = parseFloat(inputR.value);
+            const X = parseFloat(inputX.value);
             const P_net = P_pv - P_load;
+            const Q_net = -Q_load;
             
-            const deltaV_total = (P_net * R + (-Q_LOAD) * X) / V_SOURCE;
-            const V_pcc = V_SOURCE + deltaV_total;
-            const V_mid = V_SOURCE + deltaV_total / 2;
+            const V_MAX = V_source * (1 + THRESHOLD_FACTOR);
+            const V_MIN = V_source * (1 - THRESHOLD_FACTOR);
+            const deltaV_total = (P_net * R + Q_net * X) / V_source;
+            const V_pcc = V_source + deltaV_total;
+            const V_mid = V_source + deltaV_total / 2;
 
             valPV.textContent = P_pv + ' W';
             valLoad.textContent = P_load + ' W';
@@ -389,6 +412,15 @@
             mathLoads.forEach(el => el.textContent = P_load);
             mathPnet.textContent = P_net;
             mathPnet2.textContent = P_net;
+            document.getElementById('math_q_load').textContent = Q_load;
+            document.getElementById('math_qnet').textContent = Q_net;
+            document.getElementById('math_qnet2').textContent = Q_net;
+            document.getElementById('math_r').textContent = R.toFixed(2);
+            document.getElementById('math_x').textContent = X.toFixed(2);
+            document.getElementById('math_v_source').textContent = V_source.toFixed(0);
+            document.getElementById('math_v_source2').textContent = V_source.toFixed(0);
+            thresholdHighLabel.textContent = V_MAX.toFixed(0);
+            thresholdLowLabel.textContent = V_MIN.toFixed(0);
             mathDV.textContent = deltaV_total.toFixed(2);
             mathDV2.textContent = (deltaV_total >= 0 ? "+" : "") + deltaV_total.toFixed(2);
             mathVPCC.textContent = V_pcc.toFixed(2);
@@ -400,7 +432,7 @@
             if (V_pcc > V_MAX) {
                 alertBox.className = "mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-xl flex items-start animate-pulse";
                 alertTitle.textContent = "CẢNH BÁO QUÁ ÁP!";
-                alertDesc.textContent = "Điện áp tại PCC vượt +10% (253V). Biến tần cần ngắt phát lưới để tránh hư hỏng thiết bị.";
+                alertDesc.textContent = `Điện áp tại PCC vượt +10% (${V_MAX.toFixed(0)} V). Biến tần cần ngắt phát lưới để tránh hư hỏng thiết bị.`;
                 alertIcon.textContent = "⚠️";
                 alertTitle.className = "font-bold text-red-700 text-sm uppercase";
                 alertDesc.className = "text-[11px] text-red-600 mt-1";
@@ -409,7 +441,7 @@
             } else if (V_pcc < V_MIN) {
                 alertBox.className = "mt-4 p-4 bg-orange-50 border-2 border-orange-200 rounded-xl flex items-start animate-bounce";
                 alertTitle.textContent = "CẢNH BÁO THẤP ÁP!";
-                alertDesc.textContent = "Điện áp tại PCC tụt xuống dưới -10% (207V). Tải quá nặng hoặc PV phát quá ít, có hại cho động cơ.";
+                alertDesc.textContent = `Điện áp tại PCC tụt xuống dưới -10% (${V_MIN.toFixed(0)} V). Tải quá nặng hoặc PV phát quá ít, có hại cho động cơ.`;
                 alertIcon.textContent = "⚡";
                 alertTitle.className = "font-bold text-orange-700 text-sm uppercase";
                 alertDesc.className = "text-[11px] text-orange-600 mt-1";
@@ -447,12 +479,29 @@
             if (P_pv > 0) flowPvPcc.style.display = 'block';
             else flowPvPcc.style.display = 'none';
 
-            voltageChart.data.datasets[0].data = [V_SOURCE, V_mid, V_pcc];
+            if (P_load > 0 || Q_load !== 0) flowPccLoad.style.display = 'block';
+            else flowPccLoad.style.display = 'none';
+
+            const flowPower = Math.max(Math.abs(P_pv), Math.abs(P_load), Math.abs(P_net));
+            const flowDuration = flowPower > 0 ? Math.max(0.7, 2 - flowPower / 20000 * 1.3) : 2;
+            flowGridMid.style.setProperty('--flow-duration', `${flowDuration}s`);
+            flowPvPcc.style.setProperty('--flow-duration', `${flowDuration}s`);
+            flowPccLoad.style.setProperty('--flow-duration', `${flowDuration}s`);
+
+            voltageChart.data.datasets[0].data = [V_source, V_mid, V_pcc];
+            voltageChart.data.datasets[1].label = `Ngưỡng trên (${V_MAX.toFixed(0)} V)`;
+            voltageChart.data.datasets[1].data = [V_MAX, V_MAX, V_MAX];
+            voltageChart.data.datasets[2].label = `Ngưỡng dưới (${V_MIN.toFixed(0)} V)`;
+            voltageChart.data.datasets[2].data = [V_MIN, V_MIN, V_MIN];
             voltageChart.update('none');
         }
 
         sliderPV.addEventListener('input', update);
         sliderLoad.addEventListener('input', update);
+        inputVSource.addEventListener('input', update);
+        inputQLoad.addEventListener('input', update);
+        inputR.addEventListener('input', update);
+        inputX.addEventListener('input', update);
         update();
     </script>
 </body>
